@@ -1,0 +1,4 @@
+rootProject.name = 'maven-repository-tools'
+include ':maven-repository-provisioner'
+
+project(':maven-repository-provisioner').projectDir = "$rootDir/maven-repository-provisioner" as File

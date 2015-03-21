@@ -8,3 +8,7 @@ release.properties
 .project
 local-cache
 maven-repository-provisioner.log
+build/
+.gradle
+.idea
+*.iml
