@@ -10,23 +10,26 @@
  *******************************************************************************/
 package com.simpligility.maven.provisioner;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
-
-import javax.inject.Named;
-import javax.inject.Singleton;
-
+import com.google.inject.AbstractModule;
+import com.google.inject.Provides;
+import com.google.inject.name.Names;
+import com.simpligility.maven.provisioner.scp.ScpWagonConfigurator;
+import com.simpligility.maven.provisioner.scp.ScpWagonProvider;
 import org.apache.maven.repository.internal.MavenAetherModule;
 import org.eclipse.aether.connector.basic.BasicRepositoryConnectorFactory;
 import org.eclipse.aether.spi.connector.RepositoryConnectorFactory;
 import org.eclipse.aether.spi.connector.transport.TransporterFactory;
 import org.eclipse.aether.transport.file.FileTransporterFactory;
 import org.eclipse.aether.transport.http.HttpTransporterFactory;
+import org.eclipse.aether.transport.wagon.WagonConfigurator;
+import org.eclipse.aether.transport.wagon.WagonProvider;
+import org.eclipse.aether.transport.wagon.WagonTransporterFactory;
 
-import com.google.inject.AbstractModule;
-import com.google.inject.Provides;
-import com.google.inject.name.Names;
+import javax.inject.Named;
+import javax.inject.Singleton;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 class DemoAetherModule
     extends AbstractModule
@@ -41,6 +44,14 @@ class DemoAetherModule
             .to( BasicRepositoryConnectorFactory.class );
         bind( TransporterFactory.class ).annotatedWith( Names.named( "file" ) ).to( FileTransporterFactory.class );
         bind( TransporterFactory.class ).annotatedWith( Names.named( "http" ) ).to( HttpTransporterFactory.class );
+
+        bind(WagonProvider.class).to(ScpWagonProvider.class);
+        bind(WagonConfigurator.class).to(ScpWagonConfigurator.class);
+        bind(TransporterFactory.class).annotatedWith(Names.named("scp")).to(WagonTransporterFactory.class);
+
+
+
+
     }
 
     @Provides
@@ -56,11 +67,13 @@ class DemoAetherModule
     @Provides
     @Singleton
     Set<TransporterFactory> provideTransporterFactories( @Named( "file" ) TransporterFactory file,
-                                                         @Named( "http" ) TransporterFactory http )
+                                                         @Named("http") TransporterFactory http,
+                                                         @Named("scp") TransporterFactory scp)
     {
         Set<TransporterFactory> factories = new HashSet<TransporterFactory>();
         factories.add( file );
         factories.add( http );
+        factories.add(scp);
         return Collections.unmodifiableSet( factories );
     }
 

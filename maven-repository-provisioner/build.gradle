@@ -15,4 +15,7 @@ dependencies {
     compile group: 'ch.qos.logback', name: 'logback-classic', version:'1.1.2'
     compile group: 'org.apache.httpcomponents', name: 'httpclient', version:'4.3.4'
     compile group: 'junit', name: 'junit', version:'4.11'
+
+    compile 'org.eclipse.aether:aether-transport-wagon:1.0.0.v20140518'
+    compile 'org.apache.maven.wagon:wagon-ssh:2.8'
 }

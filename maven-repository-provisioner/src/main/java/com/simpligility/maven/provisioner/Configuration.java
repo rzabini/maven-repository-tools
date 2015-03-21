@@ -4,11 +4,11 @@
  */
 package com.simpligility.maven.provisioner;
 
+import com.beust.jcommander.Parameter;
+
 import java.io.File;
 import java.util.Arrays;
 import java.util.List;
-
-import com.beust.jcommander.Parameter;
 
 public class Configuration
 {
@@ -51,46 +51,6 @@ public class Configuration
                 description = "Local directory used as a cache between resolving and deploying, default is local-cache,"
                 )
     private String cacheDirectory = "local-cache";
-    
-    public void setSourceUrl( String sourceUrl )
-    {
-        this.sourceUrl = sourceUrl;
-    }
-
-    public void setTargetUrl( String targetUrl )
-    {
-        this.targetUrl = targetUrl;
-    }
-
-    public void setArtifactCoordinate( String artifactCoordinate )
-    {
-        this.artifactCoordinate = artifactCoordinate;
-    }
-
-    public void setUsername( String username )
-    {
-        this.username = username;
-    }
-
-    public void setPassword( String password )
-    {
-        this.password = password;
-    }
-
-    public void setIncludeSources( Boolean includeSources )
-    {
-        this.includeSources = includeSources;
-    }
-
-    public void setIncludeJavadoc( Boolean includeJavadoc )
-    {
-        this.includeJavadoc = includeJavadoc;
-    }
-    
-    public void setCacheDirectory( String cacheDirectory )
-    {
-        this.cacheDirectory = cacheDirectory;
-    }
 
     public boolean getHelp()
     {
@@ -102,18 +62,25 @@ public class Configuration
         return sourceUrl;
     }
 
-    public String getTargetUrl()
+    public void setSourceUrl(String sourceUrl)
     {
+        this.sourceUrl = sourceUrl;
+    }
 
-        if ( !targetUrl.startsWith( "http" ) )
-        {
-            // if url does not start with http (or https..) we assume it is a file path and convert it with
-            return new File( targetUrl ).toURI().toString();
-        }
-        else
-        {
+    public String getTargetUrl() {
+        if (targetUrl == null)
+            return null;
+        if (targetUrl.startsWith("scp") || targetUrl.startsWith("http"))
             return targetUrl;
+        else {
+            //if url does not start with http (or https..) we assume it is a file path and convert it with
+            return new File(targetUrl).toURI().toString();
         }
+    }
+
+    public void setTargetUrl(String targetUrl)
+    {
+        this.targetUrl = targetUrl;
     }
 
     public String getArtifactCoordinate()
@@ -121,9 +88,19 @@ public class Configuration
         return artifactCoordinate;
     }
 
+    public void setArtifactCoordinate(String artifactCoordinate)
+    {
+        this.artifactCoordinate = artifactCoordinate;
+    }
+
     public String getUsername()
     {
         return username;
+    }
+
+    public void setUsername(String username)
+    {
+        this.username = username;
     }
 
     public String getPassword()
@@ -131,22 +108,40 @@ public class Configuration
         return password;
     }
 
+    public void setPassword(String password)
+    {
+        this.password = password;
+    }
+
     public Boolean getIncludeSources()
     {
         return includeSources;
+    }
+
+    public void setIncludeSources(Boolean includeSources)
+    {
+        this.includeSources = includeSources;
     }
 
     public Boolean getIncludeJavadoc()
     {
         return includeJavadoc;
     }
-    
+
+    public void setIncludeJavadoc(Boolean includeJavadoc)
+    {
+        this.includeJavadoc = includeJavadoc;
+    }
 
     public String getCacheDirectory()
     {
         return cacheDirectory;
     }
 
+    public void setCacheDirectory(String cacheDirectory)
+    {
+        this.cacheDirectory = cacheDirectory;
+    }
 
     public List<String> getArtifactCoordinates()
     {
