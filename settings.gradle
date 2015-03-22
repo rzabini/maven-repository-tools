@@ -1,4 +1,4 @@
 rootProject.name = 'maven-repository-tools'
-include ':maven-repository-provisioner'
+include ':maven-repository-provisioner', ':maven-gradle'
 
 project(':maven-repository-provisioner').projectDir = "$rootDir/maven-repository-provisioner" as File
