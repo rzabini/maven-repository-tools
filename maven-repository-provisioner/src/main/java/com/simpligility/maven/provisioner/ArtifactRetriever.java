@@ -4,6 +4,10 @@
  */
 package com.simpligility.maven.provisioner;
 
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.aether.DefaultRepositorySystemSession;
 import org.eclipse.aether.RepositorySystem;
@@ -13,16 +17,16 @@ import org.eclipse.aether.collection.CollectRequest;
 import org.eclipse.aether.graph.Dependency;
 import org.eclipse.aether.graph.DependencyFilter;
 import org.eclipse.aether.repository.RemoteRepository;
-import org.eclipse.aether.resolution.*;
+import org.eclipse.aether.resolution.ArtifactRequest;
+import org.eclipse.aether.resolution.ArtifactResolutionException;
+import org.eclipse.aether.resolution.ArtifactResult;
+import org.eclipse.aether.resolution.DependencyRequest;
+import org.eclipse.aether.resolution.DependencyResolutionException;
+import org.eclipse.aether.resolution.DependencyResult;
 import org.eclipse.aether.util.artifact.JavaScopes;
 import org.eclipse.aether.util.filter.DependencyFilterUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
 
 /**
  * ArtifactRetriever can resolve a depenedencies and all transitive dependencies and upstream parent pom's 
@@ -47,40 +51,28 @@ public class ArtifactRetriever
 
     private DefaultRepositorySystemSession session;
 
-    private File localRepo;
+    private File repositoryPath;
 
-    //private RemoteRepository sourceRepository;
-    private Collection<RemoteRepository> sourceRepositories = new ArrayList<RemoteRepository>();
+    private RemoteRepository sourceRepository;
 
-    public ArtifactRetriever( File localRepo )
+    public ArtifactRetriever( File repositoryPath )
     {
-        this.localRepo = localRepo;
+        this.repositoryPath = repositoryPath;
         initialize();
     }
 
     private void initialize()
     {
-        system = Booter.newRepositorySystem();
-        session = Booter.newRepositorySystemSession( system, localRepo );
+        system = RepositoryHandler.getRepositorySystem();
+        session = RepositoryHandler.getRepositorySystemSession( system, repositoryPath );
     }
 
     public void retrieve( List<String> artifactCoordinates, String sourceUrl, boolean includeSources,
-                          boolean includeJavadoc) {
-        Collection<String> sourceUrls = new ArrayList<String>();
-        sourceUrls.add(sourceUrl);
-        retrieve(artifactCoordinates, sourceUrls, includeSources, includeJavadoc);
-    }
-
-
-    public void retrieve(List<String> artifactCoordinates, Collection<String> sourceUrl, boolean includeSources,
                           boolean includeJavadoc )
     {
-
-        for (String url : sourceUrl) {
-            RemoteRepository.Builder builder = new RemoteRepository.Builder(url, "default", url);
-            builder.setProxy(ProxyHelper.getProxy(url));
-            sourceRepositories.add(builder.build());
-        }
+        RemoteRepository.Builder builder = new RemoteRepository.Builder( "central", "default", sourceUrl );
+        builder.setProxy( ProxyHelper.getProxy( sourceUrl ) );
+        sourceRepository = builder.build();
 
         List<ArtifactResult> artifactResults = getArtifactResults( artifactCoordinates );
 
@@ -120,8 +112,7 @@ public class ArtifactRetriever
 
                     ArtifactRequest classifierRequest = new ArtifactRequest();
                     classifierRequest.setArtifact( classifierArtifact );
-                    for (RemoteRepository sourceRepository : sourceRepositories)
-                        classifierRequest.addRepository(sourceRepository);
+                    classifierRequest.addRepository( sourceRepository );
 
                     try
                     {
@@ -178,8 +169,7 @@ public class ArtifactRetriever
 
             CollectRequest collectRequest = new CollectRequest();
             collectRequest.setRoot( new Dependency( artifact, JavaScopes.COMPILE ) );
-            for (RemoteRepository sourceRepository : sourceRepositories)
-                collectRequest.addRepository(sourceRepository);
+            collectRequest.addRepository( sourceRepository );
 
             DependencyRequest dependencyRequest = new DependencyRequest( collectRequest, depFilter );
 
@@ -190,7 +180,11 @@ public class ArtifactRetriever
             }
             catch ( DependencyResolutionException e )
             {
-                logger.info( "DependencyResolutionException " );
+                logger.info( "DependencyResolutionException ", e );
+            }
+            catch ( NullPointerException npe )
+            {
+                logger.info( "NullPointerException resolving dependencies ", npe );
             }
         }
 
